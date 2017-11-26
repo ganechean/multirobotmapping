@@ -1,3 +1,7 @@
+/**
+ * @author nconlon
+ */
+
 
 #include "grid_fusion/Helpers.hpp"
 #include <cmath>
@@ -9,15 +13,19 @@ namespace robot
 {
 
 
-    void runOccupancyGridMapping(const sensor_msgs::LaserScan::ConstPtr& msg, Point position, double heading, double* grid)
+    void runOccupancyGridMapping(const sensor_msgs::LaserScan::ConstPtr& msg,
+                                 Point position,
+                                 double heading,
+                                 std::vector<float>& likelihoodMap)
     {
         double beamMax = fmod(rad2deg(msg->angle_max)+360, 360);
         double beamWidth = beamMax/5.0;
-        updateOccupancyGrid(grid, msg->ranges, position, heading, beamWidth, beamMax, msg->range_max);
+        updateLikelihoodMap(msg->ranges, likelihoodMap, position, heading,
+                            beamWidth, beamMax, msg->range_max);
     }
 
-    void updateOccupancyGrid(double* grid,
-                             std::vector<float> readings,
+    void updateLikelihoodMap(std::vector<float> readings,
+                             std::vector<float>& likelihoodMap,
                              Point position,
                              double heading,
                              double beamWidth,
@@ -35,16 +43,16 @@ namespace robot
                 if(inPerceptualField(mp, position, sensorHeadings[2], beamMax, zMax))
                 {
                     double log = getInverseSensorModel(mp, position, zMax, readings, sensorHeadings, beamWidth) - 0.0;
-                    grid[y*maxX+x] = grid[y*maxX+x]+log;
-                    if(grid[y*maxX+x] > 100)
+                    double likelihood = likelihoodMap.at(y*maxX+x) + log;
+                    if(likelihood > 100)
                     {
-                       grid[y*maxX+x]  = 100;
+                       likelihood  = 100;
                     }
-                    if(grid[y*maxX+x] < -100)
+                    if(likelihood < -100)
                     {
-                        grid[y*maxX+x] = -100;
+                        likelihood = -100;
                     }
-
+                    likelihoodMap.at(y*maxX+x) = likelihood;
                 }
             }
         }

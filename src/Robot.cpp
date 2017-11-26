@@ -21,28 +21,14 @@ namespace robot
 
         xPos = yPos = 0;
         moving = false;
-        initGrid();
+        init();
     }
 
 
     bool collision()
     {
-//        double x = 0;
-//        double y = 0;
-//        for(int i=0; i<10; i++)
-//        {
-//            x+=prevXPos[i];
-//            y+=prevYPos[i];
-//        }
-//        x/=10;
-//        y/=10;
-//        if(fabs(x-xPos)< 0.005 && fabs(y-yPos) < 0.005)
-//        {
-//            return true;
-//            std::cout << "collision detected" << std::endl;
-//        }
+        //TODO
         return false;
-
     }
 
     void Robot::laserScanCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
@@ -71,24 +57,9 @@ namespace robot
                 m_vel.angular.z = -2;
             }
 
-            runOccupancyGridMapping(msg, Point(xPos+scale/2.0, yPos+scale/2.0), heading, grid);
+            runOccupancyGridMapping(msg, Point(xPos+scale/2.0, yPos+scale/2.0),
+                                    heading, m_grid.data);
 
-            for(int i = 0; i < maxX*maxY; i++)
-            {
-                m_grid.data.at(i) = grid[i];
-
-                double prob = 1-(1.0/(1+exp(grid[i])));
-
-
-                if(prob < 0.2)
-                    m_map.data.at(i) = 0; // empty
-                else if(prob > 0.65) //TODO  tweak me
-                    m_map.data.at(i) = 100; // occupied
-                else
-                    m_map.data.at(i) = -1; // unknown
-            }
-
-            mapPub.publish(m_map);
             arrayPub.publish(m_grid);
             twistPub.publish(m_vel);
         }
@@ -103,7 +74,7 @@ namespace robot
         heading = getYaw(msg->pose.pose.orientation);
     }
 
-    void Robot::initGrid()
+    void Robot::init()
     {
         //Create a header, populate the fields.
         std_msgs::Header header = std_msgs::Header();
@@ -113,10 +84,9 @@ namespace robot
         //Create the map meta data
         nav_msgs::MapMetaData metaD = nav_msgs::MapMetaData();
         metaD.map_load_time = ros::Time::now();
-        metaD.resolution = resolution; //each pixel will represent .05 meters
-        metaD.width = maxX; //2400 pixels long , AKA 120 meters
-        metaD.height = maxY; //600 pixels tall, AKA 30 meter
-        //metaD.origin will just init to 0, no need to change
+        metaD.resolution = resolution;
+        metaD.width = maxX;
+        metaD.height = maxY;
 
         m_map = nav_msgs::OccupancyGrid();
         m_map.header = header;
@@ -124,7 +94,6 @@ namespace robot
 
         for(int i = 0; i < maxX*maxY; i++)
         {
-            grid[i] = 0.0; // likelihood map
             m_map.data.push_back(-1);  // occupancy grid to publish
             m_grid.data.push_back(0.0); // likelihood map to publish
         }

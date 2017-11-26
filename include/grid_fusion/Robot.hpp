@@ -35,30 +35,46 @@ namespace robot
                   const char* odometrySubTopic,
                   const char* twistPubTopic,
                   const char* gridPubTopic, const char *arrayPubTopic);
+
+            /**
+             * Callback for the LaserScan message
+             *
+             * @brief laserScanCallback
+             * @param msg
+             */
             void laserScanCallback(const sensor_msgs::LaserScan::ConstPtr& msg);
+
+            /**
+             * Callback for the Odometry message
+             *
+             * @brief odometryCallback
+             * @param msg
+             */
             void odometryCallback(const nav_msgs::Odometry::ConstPtr& msg);
-            const char* toString() const;
-            void initGrid();
+
             ~Robot();
 
-            typedef Robot* Ptr;
-
         private:
+            // pubs and subs
             ros::Subscriber laserScanSub;
             ros::Subscriber odometrySub;
             ros::Publisher twistPub;
             ros::Publisher mapPub;
             ros::Publisher arrayPub;
+
+            // messages to publish
             geometry_msgs::Twist m_vel;
             std_msgs::Float32MultiArray m_grid;
             nav_msgs::OccupancyGrid m_map;
-            double grid[maxX*maxY];
+
+            // robot current state
             volatile double xPos;
             volatile double yPos;
             volatile double heading;
-           // volatile double prevXPos[10];
-           // volatile double prevYPos[10];
             bool moving;
+
+            // initialize the node
+            void init();
     };
 }
 
