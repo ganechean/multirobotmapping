@@ -7,10 +7,27 @@
 
 //TODO pull these into properties
 namespace robot {
-    const int maxX = 300;//1200;//0; //scale*map_size_metersX
-    const int maxY = 300;//320;//0; //scale*map_size_metersY
-    const double resolution = 0.1; // 1/scale
-    const double scale = 10.0;
+    // map constants
+    const int MAX_X = 300;//1200;//0; //scale*map_size_metersX
+    const int MAX_Y = 300;//320;//0; //scale*map_size_metersY
+    const double RESOLUTION = 0.1; // 1/scale
+    const double SCALE = 10.0; //30x30 meter map
+    const int SEND_FREQUENCY = 1; // send the map once per sensor message received
+
+    // algorithm constants
+    enum FUSION_TYPE { MAX, IOP, IMSF };
+    const FUSION_TYPE FUSION = MAX;
+    const float EMPTY_THRESHOLD_FLOAT = 1-(1.0/(1+exp(-20)));
+    const float OCCUPIED_THRESHOLD_FLOAT = 1-(1.0/(1+exp(20)));
+
+    // movement constants
+    enum ROBOT_TYPE { CLEAN, DIRTY};
+    const ROBOT_TYPE ROBOT = CLEAN;
+    const unsigned int RAND_SEED = 1;
+    const float MAX_SPEED = 0.5;
+    const float ZERO_SPEED = 0.0;
+    const float MAX_HEADING = 10.0;
+    const float ZERO_HEADING = 0.0;
 
 }
 

@@ -20,58 +20,83 @@ namespace robot
         arrayPub = nhPtr.advertise<std_msgs::Float32MultiArray>(arrayPubTopic, 1);
 
         xPos = yPos = 0;
+        timeStep = 0;
         moving = false;
         init();
+        srand(RAND_SEED);
     }
 
-
-    bool collision()
-    {
-        //TODO
-        return false;
-    }
 
     void Robot::laserScanCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
     {
         if(moving)
         {
-            m_vel.linear.x = 5.0;
-            m_vel.angular.z = 0.0;
+            //runWallFollowing(msg);
+            runRandomWalk(msg);
 
-            if(msg->ranges[2] < 2)
-            {
-                m_vel.linear.x = 0.0;
-                m_vel.angular.z = 10;
-            }
-            else if(collision())
-            {
-                m_vel.linear.x = -1;
-                m_vel.angular.z = 10;
-            }
-            else if(msg->ranges[1] < msg->ranges[3])
-            {
-                m_vel.angular.z = 2;
-            }
-            else
-            {
-                m_vel.angular.z = -2;
-            }
-
-            runOccupancyGridMapping(msg, Point(xPos+scale/2.0, yPos+scale/2.0),
+            runOccupancyGridMapping(msg, Point(xPos+SCALE/2.0, yPos+SCALE/2.0),
                                     heading, m_grid.data);
 
+            if(timeStep % SEND_FREQUENCY == 0)
+            {
             arrayPub.publish(m_grid);
+            }
             twistPub.publish(m_vel);
         }
+
+        timeStep++;
     }
+
 
 
     void Robot::odometryCallback(const nav_msgs::Odometry::ConstPtr& msg)
     {
         moving = true;
-        xPos = msg->pose.pose.position.x+(maxX/scale)/2;
-        yPos = msg->pose.pose.position.y+(maxY/scale)/2;
+        xPos = msg->pose.pose.position.x+(MAX_X/SCALE)/2;
+        yPos = msg->pose.pose.position.y+(MAX_Y/SCALE)/2;
         heading = getYaw(msg->pose.pose.orientation);
+    }
+
+    void Robot::runWallFollowing(const sensor_msgs::LaserScan::ConstPtr& msg)
+    {
+        m_vel.linear.x = MAX_SPEED;
+        m_vel.angular.z = ZERO_HEADING;
+
+        if(msg->ranges[2] < 2)
+        {
+            m_vel.linear.x = ZERO_SPEED;
+            m_vel.angular.z = MAX_HEADING;
+        }
+        else if(msg->ranges[1] < msg->ranges[3])
+        {
+            m_vel.angular.z = 2;
+        }
+        else
+        {
+            m_vel.angular.z = -2;
+        }
+    }
+
+    void Robot::runRandomWalk(const sensor_msgs::LaserScan::ConstPtr& msg)
+    {
+
+        m_vel.linear.x = MAX_SPEED;
+        m_vel.angular.z = ZERO_HEADING;
+
+        if(msg->ranges[2] < 2)
+        {
+           double r = (double)rand()/(double)RAND_MAX; // add a bit of randomness
+
+           if(msg->ranges[1] <  msg->ranges[3] )
+           {
+               m_vel.angular.z = 2+2*r;
+           }
+           else
+           {
+               m_vel.angular.z = -2-2*r;
+           }
+           m_vel.linear.x = ZERO_SPEED;
+        }
     }
 
     void Robot::init()
@@ -84,15 +109,15 @@ namespace robot
         //Create the map meta data
         nav_msgs::MapMetaData metaD = nav_msgs::MapMetaData();
         metaD.map_load_time = ros::Time::now();
-        metaD.resolution = resolution;
-        metaD.width = maxX;
-        metaD.height = maxY;
+        metaD.resolution = RESOLUTION;
+        metaD.width = MAX_X;
+        metaD.height = MAX_Y;
 
         m_map = nav_msgs::OccupancyGrid();
         m_map.header = header;
         m_map.info = metaD;
 
-        for(int i = 0; i < maxX*maxY; i++)
+        for(int i = 0; i < MAX_X*MAX_Y; i++)
         {
             m_map.data.push_back(-1);  // occupancy grid to publish
             m_grid.data.push_back(0.0); // likelihood map to publish

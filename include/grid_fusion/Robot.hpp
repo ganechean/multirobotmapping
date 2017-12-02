@@ -72,9 +72,17 @@ namespace robot
             volatile double yPos;
             volatile double heading;
             bool moving;
+            int timeStep;
 
             // initialize the node
             void init();
+
+            // move the robot
+            void runWallFollowing(const sensor_msgs::LaserScan::ConstPtr& msg);
+            void runRandomWalk(const sensor_msgs::LaserScan::ConstPtr& msg);
+
+            // detect any collitions
+            bool collision(double x, double y);
     };
 }
 

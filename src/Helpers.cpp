@@ -11,8 +11,6 @@
 
 namespace robot
 {
-
-
     void runOccupancyGridMapping(const sensor_msgs::LaserScan::ConstPtr& msg,
                                  Point position,
                                  double heading,
@@ -20,7 +18,8 @@ namespace robot
     {
         double beamMax = fmod(rad2deg(msg->angle_max)+360, 360);
         double beamWidth = beamMax/5.0;
-        updateLikelihoodMap(msg->ranges, likelihoodMap, position, heading,
+
+        updateLikelihoodMap(adjustReadings(msg->ranges), likelihoodMap, position, heading,
                             beamWidth, beamMax, msg->range_max);
     }
 
@@ -34,16 +33,16 @@ namespace robot
     {
         double* sensorHeadings = getSensorHeadings(heading);
 
-        for(int y = 0; y < maxY; y++)
+        for(int y = 0; y < MAX_Y; y++)
         {
-            for(int x = 0; x < maxX; x++)
+            for(int x = 0; x < MAX_X; x++)
             {
-                Point mp = Point(x/scale+scale/2.0,y/scale+scale/2.0);
+                Point mp = Point(x/SCALE+SCALE/2.0,y/SCALE+SCALE/2.0);
 
                 if(inPerceptualField(mp, position, sensorHeadings[2], beamMax, zMax))
                 {
                     double log = getInverseSensorModel(mp, position, zMax, readings, sensorHeadings, beamWidth) - 0.0;
-                    double likelihood = likelihoodMap.at(y*maxX+x) + log;
+                    double likelihood = likelihoodMap.at(y*MAX_X+x) + log;
                     if(likelihood > 100)
                     {
                        likelihood  = 100;
@@ -52,7 +51,7 @@ namespace robot
                     {
                         likelihood = -100;
                     }
-                    likelihoodMap.at(y*maxX+x) = likelihood;
+                    likelihoodMap.at(y*MAX_X+x) = likelihood;
                 }
             }
         }
@@ -65,7 +64,7 @@ namespace robot
                                  double* thetas,
                                  double beamWidth)
     {
-        float alpha = 2.0/scale;
+        float alpha = 2.0/SCALE;
         double beta = beamWidth;
         double r = mp.getDistance(cp);
         double phi = fmod(rad2deg(atan2(mp.getY()-cp.getY(), mp.getX()-cp.getX()))+360,360);
@@ -152,6 +151,41 @@ namespace robot
         return array;
     }
 
+
+    std::vector<float> adjustReadings(std::vector<float> readings)
+    {
+        switch(ROBOT)
+        {
+        case CLEAN:
+            return readings;
+            break;
+        case DIRTY:
+
+            std::vector<float> adjusted;
+            boost::mt19937 rng;
+
+            for(int i=0; i<readings.size(); i++)
+            {
+                float reading = readings.at(i);
+                if(reading < 5)
+                {
+                    boost::normal_distribution<> nd(reading, 0.5);
+                    boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > var_nor(rng, nd);
+                    var_nor();
+                    float val = var_nor();
+                    val = val < 5 ? val : 5;
+                    adjusted.push_back(val);
+                }
+                else
+                {
+                    adjusted.push_back(reading);
+                }
+            }
+            return adjusted;
+            break;
+        }
+
+    }
 
 }
 

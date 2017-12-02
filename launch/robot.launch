@@ -1,32 +1,39 @@
 <!-- -*- xml -*- -->
 <launch>
-<!-- args = x/base_scan y/base_pose_ground_truth z/cmd_vel xDim yDim -->
-<!--
-    <node name="robot_runner1" pkg="multirobotmapping" type="Robot_Runner" required="true" 
-          output="screen" args="/robot_0/ /robot_0/ /robot_0/"/>
--->
+<!-- args = x/base_scan y/base_pose_ground_truth z/cmd_vel -->
+ 
     <node name="robot_runner0" pkg="multirobotmapping" type="Robot_Runner" required="true" 
+          output="screen" args="/robot/ /stage/ /robot/"/>
+
+
+ <!-- uncomment below for >= 2 bots -->
+ 
+<!--
+   <node name="robot_runner0" pkg="multirobotmapping" type="Robot_Runner" required="true" 
           output="screen" args="/robot_0/ /robot_0/ /robot_0/"/>
+
     <node name="robot_runner1" pkg="multirobotmapping" type="Robot_Runner" required="true" 
           output="screen" args="/robot_1/ /robot_1/ /robot_1/"/>
     <node name="robot_runner2" pkg="multirobotmapping" type="Robot_Runner" required="true" 
           output="screen" args="/robot_2/ /robot_2/ /robot_2/"/>
+
     <node name="robot_runner3" pkg="multirobotmapping" type="Robot_Runner" required="true" 
           output="screen" args="/robot_3/ /robot_3/ /robot_3/"/>
     <node name="robot_runner4" pkg="multirobotmapping" type="Robot_Runner" required="true" 
           output="screen" args="/robot_4/ /robot_4/ /robot_4/"/>
+
     <node name="robot_runner5" pkg="multirobotmapping" type="Robot_Runner" required="true" 
           output="screen" args="/robot_5/ /robot_5/ /robot_5/"/>
     <node name="robot_runner6" pkg="multirobotmapping" type="Robot_Runner" required="true" 
           output="screen" args="/robot_6/ /robot_6/ /robot_6/"/>
+
     <node name="robot_runner7" pkg="multirobotmapping" type="Robot_Runner" required="true" 
           output="screen" args="/robot_7/ /robot_7/ /robot_7/"/>
     <node name="robot_runner8" pkg="multirobotmapping" type="Robot_Runner" required="true" 
           output="screen" args="/robot_8/ /robot_8/ /robot_8/"/>
     <node name="robot_runner9" pkg="multirobotmapping" type="Robot_Runner" required="true" 
           output="screen" args="/robot_9/ /robot_9/ /robot_9/"/>
-
-
+-->
 
     <node name="fuser_runner" pkg="multirobotmapping" type="Fuser_Runner" required="true" 
           output="screen" />

@@ -7,6 +7,8 @@
 #define HELPERS_HPP
 
 #include <cmath>
+#include <boost/random.hpp>
+#include <boost/random/normal_distribution.hpp>
 #include <tf/transform_datatypes.h>
 #include <sensor_msgs/LaserScan.h>
 #include "Point.hpp"
@@ -120,6 +122,8 @@ namespace robot {
                                  double heading,
                                  std::vector<float> &likelihoodMap);
 
+
+    std::vector<float> adjustReadings(std::vector<float> readings);
 }
 
 #endif // HELPERS_HPP
