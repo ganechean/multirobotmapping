@@ -12,7 +12,7 @@ elseif(COMPILER_SUPPORTS_CXX0X)
     message(STATUS "Linking -std=c++0x")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 else()
-    message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11/0x support.  Please use a different C++ compiler.")
+    message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11/0x support.")
 endif(COMPILER_SUPPORTS_CXX11)
 
 find_package(catkin REQUIRED COMPONENTS
@@ -22,6 +22,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   sensor_msgs
   std_msgs
+  stage_ros
 )
 
 catkin_package()

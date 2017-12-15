@@ -33,8 +33,7 @@ namespace robot {
     public:
         Fuser(ros::NodeHandle nhPtr,
               const char* gridPubTopic,
-              const char* floatArraySubTopic,
-              const char *intArraySubTopic);
+              const char* floatArraySubTopic);
 
         /**
          * Callback for the Float 32 array message
@@ -42,15 +41,8 @@ namespace robot {
          * @brief arrayCallback
          * @param msg
          */
-        void arrayCallback(const std_msgs::Float32MultiArray::ConstPtr& msg);
+        void fusionCallback(const std_msgs::Int8MultiArray::ConstPtr& msg);
 
-        /**
-         * Callback for the int 8 array message
-         *
-         * @brief arrayCallback
-         * @param msg
-         */
-        void intArrayCallback(const std_msgs::Int8MultiArray::ConstPtr& msg);
 
         ~Fuser();
 
@@ -64,22 +56,21 @@ namespace robot {
         nav_msgs::OccupancyGrid m_map;
 
         // local fused likelihood map
-        std::vector<float> grid;
-        std::vector<uint8_t> int_grid;
+        std::vector<float> float_grid;
+        std::vector<int16_t> int_grid;
 
         // fuse msg with grid
-        void fuseFloat(const std_msgs::Float32MultiArray::ConstPtr& msg);
-        void fuseInt(const std_msgs::Int8MultiArray::ConstPtr& msg);
+        void fuse(const std_msgs::Int8MultiArray::ConstPtr& msg);
 
         // run fusers
-        void runMax(const std_msgs::Float32MultiArray::ConstPtr& msg);
-        void runIOP(const std_msgs::Float32MultiArray::ConstPtr& msg);
+        void runMax(const std_msgs::Int8MultiArray::ConstPtr& msg);
+        void runIOP(const std_msgs::Int8MultiArray::ConstPtr& msg);
         void runInt(const std_msgs::Int8MultiArray::ConstPtr& msg);
 
         // fuse based on some different methos
         float fuseUsingMaximization(float a, float b);
         float fuseUsingIndependentOpinionPool(float a, float b);
-        uint8_t fuseUsingIntegerArithmetic(uint8_t a, uint8_t b);
+        int16_t fuseUsingIntegerArithmetic(int16_t m, int16_t n);
 
         // initialize the node
         void init();

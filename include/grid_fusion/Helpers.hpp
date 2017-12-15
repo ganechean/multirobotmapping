@@ -59,7 +59,7 @@ namespace robot {
      * @param zMax
      */
     void updateLikelihoodMap(std::vector<float> readings,
-                             std::vector<float>& likelihoodMap,
+                             std::vector<int8_t> &likelihoodMap,
                              Point position,
                              double heading,
                              double beamWidth,
@@ -86,7 +86,7 @@ namespace robot {
      * @param beamWidth
      * @return the log likelihood
      */
-    double getInverseSensorModel(Point mp,
+    int getInverseSensorModel(Point mp,
                                  Point cp,
                                  float zMax,
                                  std::vector<float> z,
@@ -120,7 +120,7 @@ namespace robot {
     void runOccupancyGridMapping(const sensor_msgs::LaserScan::ConstPtr& msg,
                                  Point position,
                                  double heading,
-                                 std::vector<float> &likelihoodMap);
+                                 std::vector<int8_t> &likelihoodMap);
 
 
     std::vector<float> adjustReadings(std::vector<float> readings);

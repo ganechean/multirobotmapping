@@ -12,6 +12,7 @@
 #include <nav_msgs/OccupancyGrid.h>
 #include <nav_msgs/Odometry.h>
 #include <std_msgs/Float32MultiArray.h>
+#include <std_msgs/Int8MultiArray.h>
 
 #include <iostream> //I/O
 #include <string>
@@ -34,7 +35,8 @@ namespace robot
                   const char* laserScanSubTopic,
                   const char* odometrySubTopic,
                   const char* twistPubTopic,
-                  const char* gridPubTopic, const char *arrayPubTopic);
+                  const char* gridPubTopic,
+                  const char *arrayPubTopic);
 
             /**
              * Callback for the LaserScan message
@@ -59,13 +61,13 @@ namespace robot
             ros::Subscriber laserScanSub;
             ros::Subscriber odometrySub;
             ros::Publisher twistPub;
-            ros::Publisher mapPub;
-            ros::Publisher arrayPub;
+            ros::Publisher occupancyGridMapPub;
+            ros::Publisher logLikelihoodMapSub;
 
             // messages to publish
             geometry_msgs::Twist m_vel;
-            std_msgs::Float32MultiArray m_grid;
-            nav_msgs::OccupancyGrid m_map;
+            std_msgs::Int8MultiArray logLikelihoodMap;
+            nav_msgs::OccupancyGrid occupancyGridMap;
 
             // robot current state
             volatile double xPos;

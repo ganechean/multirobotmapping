@@ -14,7 +14,7 @@ namespace robot
     void runOccupancyGridMapping(const sensor_msgs::LaserScan::ConstPtr& msg,
                                  Point position,
                                  double heading,
-                                 std::vector<float>& likelihoodMap)
+                                 std::vector<int8_t>& likelihoodMap)
     {
         double beamMax = fmod(rad2deg(msg->angle_max)+360, 360);
         double beamWidth = beamMax/5.0;
@@ -24,7 +24,7 @@ namespace robot
     }
 
     void updateLikelihoodMap(std::vector<float> readings,
-                             std::vector<float>& likelihoodMap,
+                             std::vector<int8_t>& likelihoodMap,
                              Point position,
                              double heading,
                              double beamWidth,
@@ -41,8 +41,8 @@ namespace robot
 
                 if(inPerceptualField(mp, position, sensorHeadings[2], beamMax, zMax))
                 {
-                    double log = getInverseSensorModel(mp, position, zMax, readings, sensorHeadings, beamWidth) - 0.0;
-                    double likelihood = likelihoodMap.at(y*MAX_X+x) + log;
+                    int log = getInverseSensorModel(mp, position, zMax, readings, sensorHeadings, beamWidth) - 0.0;
+                    int likelihood = likelihoodMap.at(y*MAX_X+x) + log;
                     if(likelihood > 100)
                     {
                        likelihood  = 100;
@@ -57,12 +57,12 @@ namespace robot
         }
     }
 
-    double getInverseSensorModel(Point mp,
-                                 Point cp,
-                                 float zMax,
-                                 std::vector<float> z,
-                                 double* thetas,
-                                 double beamWidth)
+    int getInverseSensorModel(Point mp,
+                              Point cp,
+                              float zMax,
+                              std::vector<float> z,
+                              double* thetas,
+                              double beamWidth)
     {
         float alpha = 2.0/SCALE;
         double beta = beamWidth;
@@ -72,15 +72,15 @@ namespace robot
 
         if(r > std::min(zMax, z.at(k))|| angleDiff(phi, thetas[k]) > beta/2)
         {
-            return 0.0; //l_o
+            return 0; //l_o
         }
         else if(z.at(k) < zMax && fabs(r-z.at(k)) < alpha)
         {
-            return 2.0; //l_occ
+            return 2; //l_occ
         }
         else
         {
-            return -2.0; // l_free
+            return -2; // l_free
         }
     }
 

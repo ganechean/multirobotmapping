@@ -5,9 +5,9 @@ import matplotlib.image as mp1mg
 import numpy as np
 
 # file 1 is the original, 2 is the constructed map.
-file1, file2 = sys.argv[1:1+2]
+file2 = sys.argv[1]
 
-map1 = Image.open(file1, "r") 
+map1 = Image.open('map.png', "r") 
 map2 = Image.open(file2, "r") 
 
 print "Comparing: ", map1.filename, " ", map2.filename

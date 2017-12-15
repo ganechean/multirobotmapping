@@ -16,8 +16,8 @@ namespace robot
         laserScanSub = nhPtr.subscribe<sensor_msgs::LaserScan>(laserScanSubTopic, 1, &Robot::laserScanCallback, this);
         odometrySub = nhPtr.subscribe<nav_msgs::Odometry>(odometrySubTopic, 1, &Robot::odometryCallback, this);
         twistPub = nhPtr.advertise<geometry_msgs::Twist>(twistPubTopic, 1);
-        mapPub = nhPtr.advertise<nav_msgs::OccupancyGrid>(gridPubTopic, 1);
-        arrayPub = nhPtr.advertise<std_msgs::Float32MultiArray>(arrayPubTopic, 1);
+        occupancyGridMapPub = nhPtr.advertise<nav_msgs::OccupancyGrid>(gridPubTopic, 1);
+        logLikelihoodMapSub = nhPtr.advertise<std_msgs::Int8MultiArray>(arrayPubTopic, 1);
 
         xPos = yPos = 0;
         timeStep = 0;
@@ -35,11 +35,11 @@ namespace robot
             runRandomWalk(msg);
 
             runOccupancyGridMapping(msg, Point(xPos+SCALE/2.0, yPos+SCALE/2.0),
-                                    heading, m_grid.data);
+                                    heading, logLikelihoodMap.data);
 
             if(timeStep % SEND_FREQUENCY == 0)
             {
-            arrayPub.publish(m_grid);
+                logLikelihoodMapSub.publish(logLikelihoodMap);
             }
             twistPub.publish(m_vel);
         }
@@ -113,14 +113,14 @@ namespace robot
         metaD.width = MAX_X;
         metaD.height = MAX_Y;
 
-        m_map = nav_msgs::OccupancyGrid();
-        m_map.header = header;
-        m_map.info = metaD;
+        occupancyGridMap = nav_msgs::OccupancyGrid();
+        occupancyGridMap.header = header;
+        occupancyGridMap.info = metaD;
 
         for(int i = 0; i < MAX_X*MAX_Y; i++)
         {
-            m_map.data.push_back(-1);  // occupancy grid to publish
-            m_grid.data.push_back(0.0); // likelihood map to publish
+            occupancyGridMap.data.push_back(-1);
+            logLikelihoodMap.data.push_back(0);
         }
     }
 

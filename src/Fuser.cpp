@@ -8,41 +8,23 @@ namespace robot
 {
     Fuser::Fuser(ros::NodeHandle nhPtr,
                  const char *gridPubTopic,
-                 const char *floatArraySubTopic,
-                 const char *intArraySubTopic)
+                 const char *arraySubTopic)
     {
-        arraySub = nhPtr.subscribe<std_msgs::Float32MultiArray>(floatArraySubTopic, 5, &Fuser::arrayCallback, this);
-        intArraySub = nhPtr.subscribe<std_msgs::Int8MultiArray>(intArraySubTopic, 5, &Fuser::intArrayCallback, this);
+        arraySub = nhPtr.subscribe<std_msgs::Int8MultiArray>(arraySubTopic, 5, &Fuser::fusionCallback, this);
 
         gridPub = nhPtr.advertise<nav_msgs::OccupancyGrid>(gridPubTopic, 1);
 
         init();
     }
 
-    void Fuser::arrayCallback(const std_msgs::Float32MultiArray::ConstPtr& msg)
+    void Fuser::fusionCallback(const std_msgs::Int8MultiArray::ConstPtr& msg)
     {
-        fuseFloat(msg);
-        gridPub.publish(m_map);
-    }
-
-    void Fuser::intArrayCallback(const std_msgs::Int8MultiArray::ConstPtr& msg)
-    {
-        fuseInt(msg);
+        fuse(msg);
         gridPub.publish(m_map);
     }
 
 
-    void Fuser::fuseInt(const std_msgs::Int8MultiArray::ConstPtr& msg)
-    {
-        switch(FUSION)
-        {
-        case IMSF:
-            runInt(msg);
-            break;
-        }
-    }
-
-    void Fuser::fuseFloat(const std_msgs::Float32MultiArray::ConstPtr& msg)
+    void Fuser::fuse(const std_msgs::Int8MultiArray::ConstPtr& msg)
     {
         switch(FUSION)
         {
@@ -52,19 +34,22 @@ namespace robot
          case MAX :
             runMax(msg);
             break;
+        case IMSF:
+            runInt(msg);
+            break;
         }
     }
 
-    void Fuser::runMax(const std_msgs::Float32MultiArray::ConstPtr& msg)
+    void Fuser::runMax(const std_msgs::Int8MultiArray::ConstPtr& msg)
     {
         for(int i=0; i<msg->data.size(); i++)
         {
-           float probNew = 1-(1.0/(1+exp(msg->data.at(i))));
-           float probOld = grid.at(i);
+           float probNew = 1-(1.0/(1+exp(float(msg->data.at(i)))));
+           float probOld = float_grid.at(i);
 
            float prob = fuseUsingMaximization(probNew, probOld);
 
-           grid.at(i) = prob;
+           float_grid.at(i) = prob;
 
            if(prob < EMPTY_THRESHOLD_FLOAT)
                m_map.data.at(i) = 0; // empty
@@ -75,16 +60,16 @@ namespace robot
         }
     }
 
-    void Fuser::runIOP(const std_msgs::Float32MultiArray::ConstPtr& msg)
+    void Fuser::runIOP(const std_msgs::Int8MultiArray::ConstPtr& msg)
     {
         for(int i=0; i<msg->data.size(); i++)
         {
-           float probNew = 1-(1.0/(1+exp(msg->data.at(i))));
-           float probOld = grid.at(i);
+           float probNew = 1-(1.0/(1+exp(float(msg->data.at(i)))));
+           float probOld = float_grid.at(i);
 
            float prob = fuseUsingIndependentOpinionPool(probNew, probOld);
 
-           grid.at(i) = prob;
+           float_grid.at(i) = prob;
 
            if(prob < EMPTY_THRESHOLD_FLOAT)
                m_map.data.at(i) = 0; // empty
@@ -99,16 +84,16 @@ namespace robot
     {
         for(int i=0; i<msg->data.size(); i++)
         {
-           uint8_t indexNew = 1;
-           uint8_t indexOld = 1;
+           int16_t indexNew = msg->data.at(i);
+           int16_t indexOld = int_grid.at(i);
 
-           uint8_t prob = fuseUsingIntegerArithmetic(indexNew, indexOld);
+           int16_t prob = fuseUsingIntegerArithmetic(indexNew, indexOld);
 
            int_grid.at(i) = prob;
 
-           if(prob < EMPTY_THRESHOLD_FLOAT)
+           if(prob < EMPTY_THRESHOLD_INT) // -3
                m_map.data.at(i) = 0; // empty
-           else if(prob > OCCUPIED_THRESHOLD_FLOAT)
+           else if(prob > OCCUPIED_THRESHOLD_INT) // +5
                m_map.data.at(i) = 100; // occupied
            else
                m_map.data.at(i) = -1; // unknown
@@ -137,9 +122,33 @@ namespace robot
         return result;
     }
 
-    uint8_t Fuser::fuseUsingIntegerArithmetic(uint8_t a, uint8_t b)
+    int16_t Fuser::fuseUsingIntegerArithmetic(int16_t m, int16_t n)
     {
-        return 0;
+        // correct for quantized inverse sensor model
+        m = m < 0 ? -10 : m == 0 ? 0 : 10;
+        n = n < 0 ? -10 : n == 0 ? 0 : 10;
+
+        int q = 2;
+        int result = m;
+
+        if(m <= 0 && n <= 0)
+        {
+            result = round(m+n-q*m*n);
+        }
+        else if(m >= 0 && n >= 0)
+        {
+            result = round(m+n+q*m*n);
+        }
+        else if(n <= 0 && m >=0 && abs(n) <= abs(m))
+        {
+            result = round((m+n)/(1-q*n));
+        }
+        else if(n <= 0 && m <= 0 && abs(n) > abs(m)) // TODO check on this
+        {
+            result = round((m+n)/(q*m+1));
+        }
+
+        return result;
     }
 
 
@@ -163,7 +172,7 @@ namespace robot
 
         for(int i = 0; i < MAX_X*MAX_Y; i++)
         {
-            grid.push_back(0.5);
+            float_grid.push_back(0.5);
             int_grid.push_back(0);
             m_map.data.push_back(-1);
         }

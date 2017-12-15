@@ -12,7 +12,7 @@ int main(int argc, char** argv)
 
     ros::NodeHandle nh;
 
-    Fuser* ptr = new Fuser(nh, "/fused_map", "/array", "/int");
+    Fuser* ptr = new Fuser(nh, "/fused_map", "/array");
 
     ros::spin();
 
