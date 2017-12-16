@@ -1,3 +1,6 @@
+# 
+# Adapted from mcl_ws/uml_mcl/CMakeLists.txt found at https://github.com/DeepBlue14/mcl_ws.git
+#
 cmake_minimum_required(VERSION 2.8.3)
 project(multirobotmapping)
 
